@@ -42,7 +42,7 @@ namespace Rito.EditorPlugins
         // ==============================================================
         private const int ContextPriority = 100;
 
-        [MenuItem("CONTEXT/MeshFilter/Edit Mesh", false, ContextPriority)]
+        [MenuItem("CONTEXT/MeshFilter/Edit Pivot", false, ContextPriority)]
         private static void Context_AddMeshEditor(MenuCommand mc)
         {
             var component = mc.context as Component;
@@ -50,7 +50,7 @@ namespace Rito.EditorPlugins
             PutComponentOnTop(me);
         }
 
-        [MenuItem("CONTEXT/MeshFilter/Edit Mesh", true, ContextPriority)]
+        [MenuItem("CONTEXT/MeshFilter/Edit Pivot", true, ContextPriority)]
         private static bool Context_AddMeshEditor_Validate(MenuCommand mc)
         {
             var component = mc.context as Component;
