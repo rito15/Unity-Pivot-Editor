@@ -99,6 +99,8 @@ namespace Rito.EditorPlugins
                     {
                         RecalculateMeshBounds();
 
+                        me.pivotPos = me.transform.position;
+
                         if (string.IsNullOrWhiteSpace(me.meshName))
                             me.meshName = me.meshFilter.sharedMesh.name;
                     }
