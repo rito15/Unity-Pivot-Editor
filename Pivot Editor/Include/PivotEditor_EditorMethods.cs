@@ -16,14 +16,31 @@ namespace Rito.EditorPlugins
     {
         private partial class Custom : UnityEditor.Editor
         {
+            /// <summary> OnInspectorGUI에서 매 에디터 프레임마다 초기화 </summary>
             private void InitValues()
             {
                 viewWidth = EditorGUIUtility.currentViewWidth;
-                safeViewWidth = viewWidth - 36f;
+                safeViewWidth = viewWidth - 48f;
+                boxHeaderWidth = safeViewWidth + 8f;
+
                 safeViewWidthOption = GUILayout.Width(safeViewWidth);
                 safeViewWidthHalfOption = GUILayout.Width(safeViewWidth * 0.5f - 1f);
                 safeViewWidthThirdOption = GUILayout.Width(safeViewWidth / 3f - 2f);
                 safeViewWidthTwoThirdOption = GUILayout.Width(safeViewWidth * 2f/ 3f);
+
+                // Init Styles
+                if (headerBoxLabelStyle == null)
+                {
+                    headerBoxLabelStyleState = new GUIStyleState()
+                    {
+                        textColor = BoxHeaderTextColor,
+                    };
+                    headerBoxLabelStyle = new GUIStyle(GUI.skin.label)
+                    {
+                        fontStyle = FontStyle.Bold,
+                        normal = headerBoxLabelStyleState
+                    };
+                }
             }
 
             private void RecordTransform()
@@ -58,6 +75,33 @@ namespace Rito.EditorPlugins
 
             private void DrawBackgroundBox()
             {
+                DrawOutlinedBox(10f, 36f);
+
+                if (me.editMode)
+                {
+                    const float lineMarginY = 38f;
+
+                    currentBoxY = 56f;
+                    float optionHeight = me.pivotEditMode ? 112f : 44f;
+                    DrawOutlinedHeaderBox(" Options", currentBoxY, optionHeight);
+
+                    currentBoxY += optionHeight + lineMarginY;
+                    float boundsHeight = (me.showBounds && me.confineInBounds) ? 106f : 44f;
+                    DrawOutlinedHeaderBox(" Bounds", currentBoxY, boundsHeight);
+
+                    currentBoxY += boundsHeight + lineMarginY;
+                    const float bottonBoxHeight = 60f;
+                    DrawOutlinedHeaderBox(" Set Pivot Position", currentBoxY, bottonBoxHeight, 1);
+
+                    currentBoxY += bottonBoxHeight + lineMarginY;
+                    DrawOutlinedHeaderBox(" Reset Transform", currentBoxY, bottonBoxHeight, 1);
+
+                    currentBoxY += bottonBoxHeight + lineMarginY;
+                    float saveHeight = string.IsNullOrWhiteSpace(me.meshName) ? 68f : 52f;
+                    DrawOutlinedHeaderBox(" Save", currentBoxY, saveHeight, 2);
+                }
+
+                return;
                 float inspectorHeight = me.editMode ? me.pivotEditMode ? 
                     FullContentHeight : 
                     ContentHeight : 
@@ -144,45 +188,45 @@ namespace Rito.EditorPlugins
                         RecalculateMeshBounds();
                 }
             }
+
             private void DrawEditModeFields()
             {
-                if (me.pivotEditMode)
+                // 1. Pivot Position Field
+                Undo.RecordObject(me, "Change Pivot Position");
+                Vector3 pivotPos = EditorGUILayout.Vector3Field("Pivot Position", me.pivotPos, safeViewWidthOption);
+
+                if (me.snapMode)
                 {
-                    // 1. Pivot Position Field
-                    Undo.RecordObject(me, "Change Pivot Position");
-                    Vector3 pivotPos = EditorGUILayout.Vector3Field("Pivot Position", me.pivotPos, safeViewWidthOption);
-
-                    if (me.snapMode)
-                    {
-                        me.pivotPos = SnapVector3(pivotPos, me.snapValue);
-                    }
-                    else
-                    {
-                        me.pivotPos = SnapVector3(pivotPos, 0.0001f);
-                    }
-
-                    // Check Pivot Pos Changed
-                    if(me.pivotPos != prevPivotPos && me.showBounds && me.confineInBounds)
-                        Local_RecalculateNormalizedPivotPoint();
-                    prevPivotPos = me.pivotPos;
-
-                    EditorGUILayout.Space(4f);
-
-                    // 2. Snap Toogle
-                    Undo.RecordObject(me, "Change Snap");
-                    me.snapMode = EditorGUILayout.Toggle("Snap", me.snapMode);
-
-                    // 3. Snap Value Slider
-                    using (new EditorGUI.DisabledGroupScope(!me.snapMode))
-                    {
-                        Undo.RecordObject(me, "Change Snap Value");
-                        float snap = EditorGUILayout.Slider("", me.snapValue, 0f, 1f, safeViewWidthOption);
-                        me.snapValue = Mathf.Round(snap / 0.05f) * 0.05f;
-                    }
+                    me.pivotPos = SnapVector3(pivotPos, me.snapValue);
                 }
+                else
+                {
+                    me.pivotPos = SnapVector3(pivotPos, 0.0001f);
+                }
+
+                // Check Pivot Pos Changed
+                if (me.pivotPos != prevPivotPos && me.showBounds && me.confineInBounds)
+                    RecalculateNormalizedPivotPoint();
+                prevPivotPos = me.pivotPos;
+
                 EditorGUILayout.Space(4f);
 
-                // 4. Bounds Toggle
+                // 2. Snap Toogle
+                Undo.RecordObject(me, "Change Snap");
+                me.snapMode = EditorGUILayout.Toggle("Snap", me.snapMode);
+
+                // 3. Snap Value Slider
+                using (new EditorGUI.DisabledGroupScope(!me.snapMode))
+                {
+                    Undo.RecordObject(me, "Change Snap Value");
+                    float snap = EditorGUILayout.Slider("", me.snapValue, 0f, 1f, safeViewWidthOption);
+                    me.snapValue = Mathf.Round(snap / 0.05f) * 0.05f;
+                }
+            }
+
+            private void DrawBoundsFields()
+            {
+                // 1. Bounds Toggle
                 using (var cc = new EditorGUI.ChangeCheckScope())
                 {
                     Undo.RecordObject(me, "Change Show Bounds");
@@ -193,11 +237,11 @@ namespace Rito.EditorPlugins
                         RecalculateMeshBounds();
 
                         if (me.confineInBounds)
-                            Local_RecalculateNormalizedPivotPoint();
+                            RecalculateNormalizedPivotPoint();
                     }
                 }
 
-                // 5. Bounds - Confine Toggle
+                // 2. Bounds - Confine Toggle
                 using (new EditorGUI.DisabledGroupScope(!me.showBounds))
                 using (var cc = new EditorGUI.ChangeCheckScope())
                 {
@@ -205,19 +249,60 @@ namespace Rito.EditorPlugins
                     me.confineInBounds = EditorGUILayout.Toggle("Confine Pivot In Bounds", me.confineInBounds);
 
                     if (cc.changed && me.confineInBounds)
-                        Local_RecalculateNormalizedPivotPoint();
+                        RecalculateNormalizedPivotPoint();
                 }
 
-                // 6. Normalized X, Y, Z Pivot Point Slider
+                // 3. Normalized X, Y, Z Pivot Point Slider
                 if (me.showBounds && me.confineInBounds)
                 {
                     me.pivotPos = ClampVector3(me.pivotPos, me.minBounds, me.maxBounds);
 
+                    var oldBGColor = GUI.backgroundColor;
+                    GUI.backgroundColor = DarkButtonColor;
+
                     using (var cc = new EditorGUI.ChangeCheckScope())
                     {
-                        float x = EditorGUILayout.Slider("X", me.normalizedPivotPoint.x, 0f, 1f);
-                        float y = EditorGUILayout.Slider("Y", me.normalizedPivotPoint.y, 0f, 1f);
-                        float z = EditorGUILayout.Slider("Z", me.normalizedPivotPoint.z, 0f, 1f);
+                        float x, y, z;
+                        const float labelWidth = 16f;
+                        const float smallButtonWidth = 20f;
+                        const float margin = 12f;
+
+                        var labelWidthOption = GUILayout.Width(labelWidth);
+                        var sliderWidthOption = GUILayout.Width(safeViewWidth - labelWidth - smallButtonWidth * 3f - margin);
+                        var smallButtonWidthOption = GUILayout.Width(smallButtonWidth);
+
+                        // X
+                        using (new EditorGUILayout.HorizontalScope())
+                        {
+                            EditorGUILayout.LabelField("X", labelWidthOption);
+                            x = EditorGUILayout.Slider(me.normalizedPivotPoint.x, 0f, 1f, sliderWidthOption);
+
+                            if (GUILayout.Button("<", smallButtonWidthOption)) x = 0.0f;
+                            if (GUILayout.Button("-", smallButtonWidthOption)) x = 0.5f;
+                            if (GUILayout.Button(">", smallButtonWidthOption)) x = 1.0f;
+                        }
+
+                        // Y
+                        using (new EditorGUILayout.HorizontalScope())
+                        {
+                            EditorGUILayout.LabelField("Y", labelWidthOption);
+                            y = EditorGUILayout.Slider(me.normalizedPivotPoint.y, 0f, 1f, sliderWidthOption);
+
+                            if (GUILayout.Button("<", smallButtonWidthOption)) y = 0.0f;
+                            if (GUILayout.Button("-", smallButtonWidthOption)) y = 0.5f;
+                            if (GUILayout.Button(">", smallButtonWidthOption)) y = 1.0f;
+                        }
+
+                        // Z
+                        using (new EditorGUILayout.HorizontalScope())
+                        {
+                            EditorGUILayout.LabelField("Z", labelWidthOption);
+                            z = EditorGUILayout.Slider(me.normalizedPivotPoint.z, 0f, 1f, sliderWidthOption);
+
+                            if (GUILayout.Button("<", smallButtonWidthOption)) z = 0.0f;
+                            if (GUILayout.Button("-", smallButtonWidthOption)) z = 0.5f;
+                            if (GUILayout.Button(">", smallButtonWidthOption)) z = 1.0f;
+                        }
 
                         // 소수점 넷째 자리까지 반올림
                         me.normalizedPivotPoint.x = Mathf.Round(x * 10000f) * 0.0001f;
@@ -229,16 +314,18 @@ namespace Rito.EditorPlugins
                             MovePivotPointByNormalizedBounds();
                         }
                     }
-                }
 
-                void Local_RecalculateNormalizedPivotPoint()
-                {
-                    me.pivotPos = ClampVector3(me.pivotPos, me.minBounds, me.maxBounds);
-
-                    me.normalizedPivotPoint.x = (me.pivotPos.x - me.minBounds.x) / (BoundsSize.x);
-                    me.normalizedPivotPoint.y = (me.pivotPos.y - me.minBounds.y) / (BoundsSize.y);
-                    me.normalizedPivotPoint.z = (me.pivotPos.z - me.minBounds.z) / (BoundsSize.z);
+                    GUI.backgroundColor = oldBGColor;
                 }
+            }
+
+            void RecalculateNormalizedPivotPoint()
+            {
+                me.pivotPos = ClampVector3(me.pivotPos, me.minBounds, me.maxBounds);
+
+                me.normalizedPivotPoint.x = (me.pivotPos.x - me.minBounds.x) / (BoundsSize.x);
+                me.normalizedPivotPoint.y = (me.pivotPos.y - me.minBounds.y) / (BoundsSize.y);
+                me.normalizedPivotPoint.z = (me.pivotPos.z - me.minBounds.z) / (BoundsSize.z);
             }
 
             private void DrawSetPivotPosButtons()
@@ -246,7 +333,7 @@ namespace Rito.EditorPlugins
                 GUI.backgroundColor = LightButtonColor2;
                 GUI.skin.button.fontStyle = FontStyle.Bold;
 
-                if (GUILayout.Button("Reset Pivot Position", safeViewWidthOption, ApplyButtonHeightOption))
+                if (GUILayout.Button("Reset Pivot", safeViewWidthOption, ApplyButtonHeightOption))
                 {
                     Undo.RecordObject(me, "Reset Pivot Position");
                     me.pivotPos = me.transform.position;
@@ -254,14 +341,14 @@ namespace Rito.EditorPlugins
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Button("Bottom Center Pivot", safeViewWidthThirdOption, ApplyButtonHeightOption))
+                    if (GUILayout.Button("Bottom Center", safeViewWidthThirdOption, ApplyButtonHeightOption))
                     {
                         Undo.RecordObject(me, "Bottom Center Pivot");
                         me.normalizedPivotPoint = new Vector3(0.5f, 0f, 0.5f);
                         MovePivotPointByNormalizedBounds();
                     }
 
-                    if (GUILayout.Button("Center Pivot", safeViewWidthThirdOption, ApplyButtonHeightOption))
+                    if (GUILayout.Button("Center", safeViewWidthThirdOption, ApplyButtonHeightOption))
                     {
                         Undo.RecordObject(me, "Center Pivot");
                         me.pivotPos = me.transform.position;
@@ -269,7 +356,7 @@ namespace Rito.EditorPlugins
                         MovePivotPointByNormalizedBounds();
                     }
 
-                    if (GUILayout.Button("Top Center Pivot", safeViewWidthThirdOption, ApplyButtonHeightOption))
+                    if (GUILayout.Button("Top Center", safeViewWidthThirdOption, ApplyButtonHeightOption))
                     {
                         Undo.RecordObject(me, "Top Center Pivot");
                         me.pivotPos = me.transform.position;
@@ -284,7 +371,7 @@ namespace Rito.EditorPlugins
                 GUI.backgroundColor = DarkButtonColor;
                 GUI.skin.button.fontStyle = FontStyle.Bold;
 
-                if (GUILayout.Button("Reset Transform", safeViewWidthOption, ApplyButtonHeightOption))
+                if (GUILayout.Button("Reset All", safeViewWidthOption, ApplyButtonHeightOption))
                 {
                     Undo.RecordObject(me.transform, "Reset Transform");
                     me.transform.localPosition = Vector3.zero;
@@ -292,27 +379,27 @@ namespace Rito.EditorPlugins
                     me.transform.localScale = Vector3.one;
 
                     // 피벗 위치도 함께 이동
-                    Undo.RecordObject(me, "Reset Transform");
-                    me.pivotPos = me.transform.position;
+                    //Undo.RecordObject(me, "Reset Transform");
+                    //me.pivotPos = me.transform.position;
 
                     RecalculateMeshBounds();
                 }
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Button("Reset Position", safeViewWidthThirdOption, ApplyButtonHeightOption))
+                    if (GUILayout.Button("Position", safeViewWidthThirdOption, ApplyButtonHeightOption))
                     {
                         Undo.RecordObject(me.transform, "Reset Position");
                         me.transform.localPosition = Vector3.zero;
 
                         // 피벗 위치도 함께 이동
-                        Undo.RecordObject(me, "Reset Position");
-                        me.pivotPos = me.transform.position;
+                        //Undo.RecordObject(me, "Reset Position");
+                        //me.pivotPos = me.transform.position;
 
                         RecalculateMeshBounds();
                     }
 
-                    if (GUILayout.Button("Reset Rotation", safeViewWidthThirdOption, ApplyButtonHeightOption))
+                    if (GUILayout.Button("Rotation", safeViewWidthThirdOption, ApplyButtonHeightOption))
                     {
                         Undo.RecordObject(me.transform, "Reset Rotation");
                         me.transform.localRotation = Quaternion.identity;
@@ -320,7 +407,7 @@ namespace Rito.EditorPlugins
                         RecalculateMeshBounds();
                     }
 
-                    if (GUILayout.Button("Reset Scale", safeViewWidthThirdOption, ApplyButtonHeightOption))
+                    if (GUILayout.Button("Scale", safeViewWidthThirdOption, ApplyButtonHeightOption))
                     {
                         Undo.RecordObject(me.transform, "Reset Scale");
                         me.transform.localScale = Vector3.one;
@@ -366,6 +453,7 @@ namespace Rito.EditorPlugins
                 Handles.color = HandleColor;
                 Handles.DrawSphere(0, me.pivotPos, Quaternion.identity, HandleUtility.GetHandleSize(me.pivotPos) * 0.12f);
             }
+
             private void DrawPivotHandle()
             {
                 float size = HandleUtility.GetHandleSize(me.pivotPos) * 0.6f;
@@ -570,11 +658,52 @@ namespace Rito.EditorPlugins
                     else if (v.z < me.minBounds.z) me.minBounds.z = v.z;
                 }
             }
+
             private void MovePivotPointByNormalizedBounds()
             {
                 me.pivotPos.x = Mathf.Lerp(me.minBounds.x, me.maxBounds.x, me.normalizedPivotPoint.x);
                 me.pivotPos.y = Mathf.Lerp(me.minBounds.y, me.maxBounds.y, me.normalizedPivotPoint.y);
                 me.pivotPos.z = Mathf.Lerp(me.minBounds.z, me.maxBounds.z, me.normalizedPivotPoint.z);
+            }
+
+            private void DrawOutlinedBox(float y, float contentHeight)
+            {
+                const float x = HeaderBoxPosX;
+                ref float width = ref boxHeaderWidth;
+
+                const float ow = HeaderBoxOutlineWidth;
+                float ow2 = ow * 2f;
+
+                Rect outRect = new Rect(x - ow, y - ow, width + ow2, contentHeight + ow2);
+                Rect inRect  = new Rect(x, y, width, contentHeight);
+
+                EditorGUI.DrawRect(outRect, MainBoxOutlineColor);
+                EditorGUI.DrawRect(inRect, MainBoxContentColor);
+            }
+
+            /// <summary> 헤더가 존재하는 박스 그리기 </summary>
+            private void DrawOutlinedHeaderBox(in string headerText, float y, float contentHeight, int colorType = 0)
+            {
+                const float x = HeaderBoxPosX;
+                const float headerHeight = HeaderBoxHeaderHeight;
+                ref float width = ref boxHeaderWidth;
+
+                const float ow = HeaderBoxOutlineWidth;
+                float ow2 = ow * 2f;
+                float ow3 = ow * 3f;
+                float height = headerHeight + contentHeight;
+
+                Rect outRect  = new Rect(x - ow, y - ow, width + ow2, height + ow3);
+                Rect outRect2 = new Rect(x - ow, y - ow, width + ow2, headerHeight + ow2);
+                Rect headRect = new Rect(x, y, width, headerHeight);
+                Rect contRect = new Rect(x, y + headerHeight + ow, width, contentHeight);
+
+                EditorGUI.DrawRect(outRect,  BoxOutlineColors[colorType]);
+                EditorGUI.DrawRect(outRect2, BoxOutlineColors[colorType]);
+                EditorGUI.DrawRect(headRect, BoxHeaderColors[colorType]);
+                EditorGUI.DrawRect(contRect, BoxContentColors[colorType]);
+
+                EditorGUI.LabelField(headRect, headerText, headerBoxLabelStyle);
             }
         }
     }

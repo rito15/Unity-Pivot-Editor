@@ -25,8 +25,44 @@ namespace Rito.EditorPlugins
             private static readonly Color DarkButtonColor2  = new Color(0.4f, 0.1f, 0.5f, 1.0f);
             private static readonly Color LightButtonColor  = new Color(0.9f, 0.7f, 1.4f, 1.0f);
             private static readonly Color LightButtonColor2 = new Color(0.6f, 0.4f, 1.0f, 1.0f);
-            private static readonly Color ContentColor    = new Color(1.4f, 1.1f, 1.8f, 1.0f);
+            private static readonly Color ContentColor    = new Color(1.4f, 1.4f, 1.8f, 1.0f);
             private static readonly Color BackgroundColor = new Color(0.3f, 0.1f, 0.6f, 0.3f);
+
+            private static readonly Color MainBoxOutlineColor = new Color(0.05f, 0.1f, 0.2f, 1.0f);
+            private static readonly Color MainBoxContentColor = new Color(0.25f, 0.15f, 0.35f, 1.0f);
+
+            // Header Box Options
+            private static readonly Color BoxHeaderTextColor = new Color(1.0f, 1.0f, 0.2f, 1.0f);
+
+            private static readonly Color[] BoxHeaderColors =
+            {
+                new Color(0.20f, 0.1f, 0.4f, 1.0f),
+                new Color(0.25f, 0.1f, 0.4f, 1.0f),
+                new Color(0.30f, 0.1f, 0.4f, 1.0f),
+            };
+            private static readonly Color[] BoxContentColors =
+            {
+                new Color(0.30f, 0.2f, 0.5f, 1.0f),
+                new Color(0.35f, 0.2f, 0.5f, 1.0f),
+                new Color(0.40f, 0.2f, 0.5f, 1.0f),
+            };
+            private static readonly Color[] BoxOutlineColors =
+            {
+                new Color(0.10f, 0.1f, 0.3f, 1.0f),
+                new Color(0.15f, 0.1f, 0.3f, 1.0f),
+                new Color(0.20f, 0.1f, 0.3f, 1.0f),
+            };
+
+
+            private GUIStyle headerBoxLabelStyle;
+            private GUIStyleState headerBoxLabelStyleState;
+
+            private const float HeaderBoxPosX = 14f;
+            private const float HeaderBoxHeaderHeight = 24f;
+            private const float HeaderBoxOutlineWidth = 2f;
+
+            private float currentBoxY;
+            private float boxHeaderWidth;
 
             // 1. 기본(버튼 한개)
             private const float HeaderButtonHeight = 48f;
@@ -40,6 +76,7 @@ namespace Rito.EditorPlugins
             private PivotEditor me;
             private float viewWidth;
             private float safeViewWidth;
+
             private GUILayoutOption safeViewWidthOption;
             private GUILayoutOption safeViewWidthHalfOption;  // 1/2
             private GUILayoutOption safeViewWidthThirdOption; // 1/3
@@ -94,7 +131,7 @@ namespace Rito.EditorPlugins
 
                 InitValues();
 
-                EditorGUILayout.Space(4f);
+                EditorGUILayout.Space(8f);
                 DrawBackgroundBox();
                 DrawEditOrCancleButton();
 
@@ -103,17 +140,24 @@ namespace Rito.EditorPlugins
                     if(IsTransformChanged)
                         RecalculateMeshBounds();
 
-                    EditorGUILayout.Space(12f);
+                    EditorGUILayout.Space(40f);
                     DrawEditPivotToggle();
-                    DrawEditModeFields();
 
-                    EditorGUILayout.Space(12f);
+                    if (me.pivotEditMode)
+                    {
+                        DrawEditModeFields();
+                    }
+
+                    EditorGUILayout.Space(40f);
+                    DrawBoundsFields();
+
+                    EditorGUILayout.Space(42f);
                     DrawSetPivotPosButtons();
 
-                    EditorGUILayout.Space(12f);
+                    EditorGUILayout.Space(44f);
                     DrawResetTransformButtons();
 
-                    EditorGUILayout.Space(12f);
+                    EditorGUILayout.Space(44f);
                     DrawApplyButtons();
 
                     RecordTransform();
