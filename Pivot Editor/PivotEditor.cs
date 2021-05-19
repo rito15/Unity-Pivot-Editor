@@ -66,4 +66,15 @@ namespace Rito.EditorPlugins
     }
 }
 
+#else
+
+using UnityEngine;
+public class PivotEditor : MonoBehaviour
+{
+    private void Awake()
+    {
+        Destroy(this);
+    }
+}
+
 #endif

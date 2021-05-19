@@ -1,9 +1,7 @@
 {
     "name": "Rito.EditorPlugins.PivotEditor",
     "references": [],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
