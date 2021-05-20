@@ -83,41 +83,29 @@ namespace Rito.EditorPlugins
 
                     currentBoxY = 56f;
                     float optionHeight = me.pivotEditMode ? 112f : 44f;
-                    DrawOutlinedHeaderBox(" Options", currentBoxY, optionHeight);
+                    if(!me.foldOutOptions) optionHeight = HeaderBoxOutlineWidth;
+                    DrawOutlinedHeaderBox(" Options", currentBoxY, optionHeight, ref me.foldOutOptions);
 
                     currentBoxY += optionHeight + lineMarginY;
                     float boundsHeight = (me.showBounds && me.confineInBounds) ? 106f : 44f;
-                    DrawOutlinedHeaderBox(" Bounds", currentBoxY, boundsHeight);
+                    if(!me.foldOutBounds) boundsHeight = HeaderBoxOutlineWidth;
+                    DrawOutlinedHeaderBox(" Bounds", currentBoxY, boundsHeight, ref me.foldOutBounds);
 
                     currentBoxY += boundsHeight + lineMarginY;
-                    const float bottonBoxHeight = 60f;
-                    DrawOutlinedHeaderBox(" Set Pivot Position", currentBoxY, bottonBoxHeight, 1);
+                    float bottonBoxHeight1 = 60f;
+                    if (!me.foldOutPivotPos) bottonBoxHeight1 = HeaderBoxOutlineWidth * 3f;
+                    DrawOutlinedHeaderBox(" Set Pivot", currentBoxY, bottonBoxHeight1, ref me.foldOutPivotPos, 1);
 
-                    currentBoxY += bottonBoxHeight + lineMarginY;
-                    DrawOutlinedHeaderBox(" Reset Transform", currentBoxY, bottonBoxHeight, 1);
+                    currentBoxY += bottonBoxHeight1 + lineMarginY;
+                    float bottonBoxHeight2 = 60f;
+                    if (!me.foldOutTransform) bottonBoxHeight2 = HeaderBoxOutlineWidth * 3;
+                    DrawOutlinedHeaderBox(" Reset Transform", currentBoxY, bottonBoxHeight2, ref me.foldOutTransform, 1);
 
-                    currentBoxY += bottonBoxHeight + lineMarginY;
-                    float saveHeight = string.IsNullOrWhiteSpace(me.meshName) ? 68f : 52f;
-                    DrawOutlinedHeaderBox(" Save", currentBoxY, saveHeight, 2);
+                    currentBoxY += bottonBoxHeight2 + lineMarginY;
+                    float saveHeight = string.IsNullOrWhiteSpace(me.meshName) ? 68f : 56f;
+                    if (!me.foldOutSave) saveHeight = HeaderBoxOutlineWidth;
+                    DrawOutlinedHeaderBox(" Save", currentBoxY, saveHeight, ref me.foldOutSave, 2);
                 }
-
-                return;
-                float inspectorHeight = me.editMode ? me.pivotEditMode ? 
-                    FullContentHeight : 
-                    ContentHeight : 
-                    HeaderButtonHeight;
-
-                if (me.editMode)
-                {
-                    if (me.showBounds && me.confineInBounds)
-                        inspectorHeight += 60f;
-                    if (string.IsNullOrWhiteSpace(me.meshName))
-                        inspectorHeight += 16f;
-                }
-
-                Rect box = new Rect(0f, 0f, viewWidth, inspectorHeight);
-
-                EditorGUI.DrawRect(box, BackgroundColor);
             }
 
             private void DrawEditOrCancleButton()
@@ -162,9 +150,10 @@ namespace Rito.EditorPlugins
                 GUI.skin.button.fontStyle = oldFontStyle;
             }
 
-            private void DrawEditPivotToggle()
+            private void DrawOptionsFields()
             {
                 GUI.color = ContentColor;
+                if (!me.foldOutOptions) return;
 
                 // 1. Hide Transform Tool Toggle
                 using (var cs = new EditorGUI.ChangeCheckScope())
@@ -175,7 +164,7 @@ namespace Rito.EditorPlugins
                     if (cs.changed && !me.hideTransformTool)
                         Tools.current = Tool.Move;
                 }
-                if(me.hideTransformTool)
+                if (me.hideTransformTool)
                     Tools.current = Tool.None;
 
                 // 2. Edit Pivot Toggle
@@ -189,8 +178,10 @@ namespace Rito.EditorPlugins
                 }
             }
 
-            private void DrawEditModeFields()
+            private void DrawEditPivotFields()
             {
+                if(!me.foldOutOptions) return;
+
                 // 1. Pivot Position Field
                 Undo.RecordObject(me, "Change Pivot Position");
                 Vector3 pivotPos = EditorGUILayout.Vector3Field("Pivot Position", me.pivotPos, safeViewWidthOption);
@@ -226,6 +217,8 @@ namespace Rito.EditorPlugins
 
             private void DrawBoundsFields()
             {
+                if(!me.foldOutBounds) return;
+
                 // 1. Bounds Toggle
                 using (var cc = new EditorGUI.ChangeCheckScope())
                 {
@@ -333,7 +326,9 @@ namespace Rito.EditorPlugins
                 GUI.backgroundColor = LightButtonColor2;
                 GUI.skin.button.fontStyle = FontStyle.Bold;
 
-                if (GUILayout.Button("Reset Pivot", safeViewWidthOption, ApplyButtonHeightOption))
+                if(!me.foldOutPivotPos) return;
+
+                if (GUILayout.Button("Reset", safeViewWidthOption, ApplyButtonHeightOption))
                 {
                     Undo.RecordObject(me, "Reset Pivot Position");
                     me.pivotPos = me.transform.position;
@@ -371,7 +366,9 @@ namespace Rito.EditorPlugins
                 GUI.backgroundColor = DarkButtonColor;
                 GUI.skin.button.fontStyle = FontStyle.Bold;
 
-                if (GUILayout.Button("Reset All", safeViewWidthOption, ApplyButtonHeightOption))
+                if (!me.foldOutTransform) return;
+
+                if (GUILayout.Button("All", safeViewWidthOption, ApplyButtonHeightOption))
                 {
                     Undo.RecordObject(me.transform, "Reset Transform");
                     me.transform.localPosition = Vector3.zero;
@@ -417,10 +414,12 @@ namespace Rito.EditorPlugins
                 }
             }
 
-            private void DrawApplyButtons()
+            private void DrawSaveButtons()
             {
                 GUI.backgroundColor = DarkButtonColor2;
                 GUI.skin.button.fontStyle = FontStyle.Bold;
+
+                if (!me.foldOutSave) return;
 
                 Undo.RecordObject(me, "Change Mesh Name");
                 me.meshName = EditorGUILayout.TextField("Mesh Name", me.meshName, safeViewWidthOption);
@@ -682,7 +681,8 @@ namespace Rito.EditorPlugins
             }
 
             /// <summary> 헤더가 존재하는 박스 그리기 </summary>
-            private void DrawOutlinedHeaderBox(in string headerText, float y, float contentHeight, int colorType = 0)
+            private void DrawOutlinedHeaderBox(in string headerText, float y, float contentHeight, ref bool foldOut,
+                int colorType = 0)
             {
                 const float x = HeaderBoxPosX;
                 const float headerHeight = HeaderBoxHeaderHeight;
@@ -693,14 +693,30 @@ namespace Rito.EditorPlugins
                 float ow3 = ow * 3f;
                 float height = headerHeight + contentHeight;
 
+                Rect headRect = new Rect(x, y, width, headerHeight);
+
+                // Foldout Button
+                var cc = GUI.color;
+                GUI.color = new Color(0,0,0,0);
+                if(GUI.Button(headRect, "")) foldOut = !foldOut;
+                if(!foldOut) contentHeight = 0f;
+                GUI.color = cc;
+
                 Rect outRect  = new Rect(x - ow, y - ow, width + ow2, height + ow3);
                 Rect outRect2 = new Rect(x - ow, y - ow, width + ow2, headerHeight + ow2);
-                Rect headRect = new Rect(x, y, width, headerHeight);
                 Rect contRect = new Rect(x, y + headerHeight + ow, width, contentHeight);
 
-                EditorGUI.DrawRect(outRect,  BoxOutlineColors[colorType]);
+                // Mouse Over - Change Color
+                Color headColor = BoxHeaderColors[colorType];
+                if (headRect.Contains(Event.current.mousePosition))
+                {
+                    headColor += new Color(0.1f, 0.1f, 0.2f);
+                }
+
+                // Draw Rects
+                if (foldOut) EditorGUI.DrawRect(outRect,  BoxOutlineColors[colorType]);
                 EditorGUI.DrawRect(outRect2, BoxOutlineColors[colorType]);
-                EditorGUI.DrawRect(headRect, BoxHeaderColors[colorType]);
+                EditorGUI.DrawRect(headRect, headColor);
                 EditorGUI.DrawRect(contRect, BoxContentColors[colorType]);
 
                 EditorGUI.LabelField(headRect, headerText, headerBoxLabelStyle);

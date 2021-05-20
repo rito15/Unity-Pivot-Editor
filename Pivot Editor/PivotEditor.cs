@@ -33,6 +33,12 @@ namespace Rito.EditorPlugins
 
         [SerializeField] private string meshName;
 
+        [SerializeField] private bool foldOutOptions = true;
+        [SerializeField] private bool foldOutBounds = true;
+        [SerializeField] private bool foldOutPivotPos = true;
+        [SerializeField] private bool foldOutTransform = true;
+        [SerializeField] private bool foldOutSave = true;
+
         private void Reset()
         {
             TryGetComponent(out meshFilter);

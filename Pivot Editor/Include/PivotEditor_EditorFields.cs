@@ -17,19 +17,23 @@ namespace Rito.EditorPlugins
         [CustomEditor(typeof(PivotEditor))]
         private partial class Custom : UnityEditor.Editor
         {
+            /***********************************************************************
+            *                               Colors
+            ***********************************************************************/
+            #region .
             private static readonly Color HandleColor = new Color(0.6f, 0.4f, 1.0f, 1.0f);
             private static readonly Color BoundsColor = new Color(0.7f, 0.5f, 1.0f, 1.0f);
             private static readonly Color ConfinedColor = new Color(1.0f, 1.0f, 0.1f, 1.0f);
 
-            private static readonly Color DarkButtonColor   = new Color(0.5f, 0.3f, 0.7f, 1.0f);
-            private static readonly Color DarkButtonColor2  = new Color(0.4f, 0.1f, 0.5f, 1.0f);
-            private static readonly Color LightButtonColor  = new Color(0.9f, 0.7f, 1.4f, 1.0f);
+            private static readonly Color DarkButtonColor = new Color(0.5f, 0.3f, 0.7f, 1.0f);
+            private static readonly Color DarkButtonColor2 = new Color(0.4f, 0.1f, 0.5f, 1.0f);
+            private static readonly Color LightButtonColor = new Color(0.9f, 0.7f, 1.4f, 1.0f);
             private static readonly Color LightButtonColor2 = new Color(0.6f, 0.4f, 1.0f, 1.0f);
-            private static readonly Color ContentColor    = new Color(1.4f, 1.4f, 1.8f, 1.0f);
+            private static readonly Color ContentColor = new Color(1.4f, 1.4f, 1.8f, 1.0f);
             private static readonly Color BackgroundColor = new Color(0.3f, 0.1f, 0.6f, 0.3f);
 
             private static readonly Color MainBoxOutlineColor = new Color(0.05f, 0.1f, 0.2f, 1.0f);
-            private static readonly Color MainBoxContentColor = new Color(0.25f, 0.15f, 0.35f, 1.0f);
+            private static readonly Color MainBoxContentColor = new Color(0.30f, 0.1f, 0.5f, 1.0f);
 
             // Header Box Options
             private static readonly Color BoxHeaderTextColor = new Color(1.0f, 1.0f, 0.2f, 1.0f);
@@ -53,37 +57,13 @@ namespace Rito.EditorPlugins
                 new Color(0.20f, 0.1f, 0.3f, 1.0f),
             };
 
-
-            private GUIStyle headerBoxLabelStyle;
-            private GUIStyleState headerBoxLabelStyleState;
-
-            private const float HeaderBoxPosX = 14f;
-            private const float HeaderBoxHeaderHeight = 24f;
-            private const float HeaderBoxOutlineWidth = 2f;
-
-            private float currentBoxY;
-            private float boxHeaderWidth;
-
-            // 1. 기본(버튼 한개)
-            private const float HeaderButtonHeight = 48f;
-
-            // 2. Edit 버튼을 누른 경우
-            private const float ContentHeight = HeaderButtonHeight + 292f;
-
-            // 3. Edit Pivot 토글을 활성화한 경우
-            private const float FullContentHeight = ContentHeight + 72f;
+            #endregion
+            /***********************************************************************
+            *                               Fields, Properties
+            ***********************************************************************/
+            #region .
 
             private PivotEditor me;
-            private float viewWidth;
-            private float safeViewWidth;
-
-            private GUILayoutOption safeViewWidthOption;
-            private GUILayoutOption safeViewWidthHalfOption;  // 1/2
-            private GUILayoutOption safeViewWidthThirdOption; // 1/3
-            private GUILayoutOption safeViewWidthTwoThirdOption; // 2/3
-
-            private static readonly GUILayoutOption ApplyButtonHeightOption 
-                = GUILayout.Height(24f);
 
             private Vector3 prevPivotPos;
             private Vector3 prevPosition;
@@ -101,6 +81,41 @@ namespace Rito.EditorPlugins
             }
             private Vector3 BoundsCenter => (me.minBounds + me.maxBounds) * 0.5f;
             private Vector3 BoundsSize => (me.maxBounds - me.minBounds);
+
+            #endregion
+            /***********************************************************************
+            *                               Layout Fields
+            ***********************************************************************/
+            #region .
+
+            private float viewWidth;
+            private float safeViewWidth;
+
+            private GUILayoutOption safeViewWidthOption;
+            private GUILayoutOption safeViewWidthHalfOption;  // 1/2
+            private GUILayoutOption safeViewWidthThirdOption; // 1/3
+            private GUILayoutOption safeViewWidthTwoThirdOption; // 2/3
+
+            private static readonly GUILayoutOption ApplyButtonHeightOption
+                = GUILayout.Height(24f);
+
+            #endregion
+            /***********************************************************************
+            *                               HeaderBox Fields
+            ***********************************************************************/
+            #region .
+
+            private GUIStyle headerBoxLabelStyle;
+            private GUIStyleState headerBoxLabelStyleState;
+
+            private const float HeaderBoxPosX = 14f;
+            private const float HeaderBoxHeaderHeight = 24f;
+            private const float HeaderBoxOutlineWidth = 2f;
+
+            private float currentBoxY;
+            private float boxHeaderWidth;
+
+            #endregion
 
             private void OnEnable()
             {
@@ -141,11 +156,11 @@ namespace Rito.EditorPlugins
                         RecalculateMeshBounds();
 
                     EditorGUILayout.Space(40f);
-                    DrawEditPivotToggle();
+                    DrawOptionsFields();
 
                     if (me.pivotEditMode)
                     {
-                        DrawEditModeFields();
+                        DrawEditPivotFields();
                     }
 
                     EditorGUILayout.Space(40f);
@@ -158,7 +173,7 @@ namespace Rito.EditorPlugins
                     DrawResetTransformButtons();
 
                     EditorGUILayout.Space(44f);
-                    DrawApplyButtons();
+                    DrawSaveButtons();
 
                     RecordTransform();
                 }
