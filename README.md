@@ -6,7 +6,7 @@
 
 # How To Import
 
-`[Window]` - `[Package Manager]` - `[+]` - `[Add package from git URL]` - `https://github.com/rito15/Unity-Pivot-Editor.git`
+`[Window]` - `[Package Manager]` - 좌측 상단 `[+]` - `[Add package from git URL]` - `https://github.com/rito15/Unity-Pivot-Editor.git`
 
 <br>
 
