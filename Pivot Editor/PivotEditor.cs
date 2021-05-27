@@ -9,7 +9,7 @@ using UnityEditor;
 // 날짜 : 2021-05-16 PM 3:34:18
 // 작성자 : Rito
 
-namespace Rito.EditorPlugins
+namespace Rito.EditorUtilities
 {
     [DisallowMultipleComponent]
     public partial class PivotEditor : MonoBehaviour

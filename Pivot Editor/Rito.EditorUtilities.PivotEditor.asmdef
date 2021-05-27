@@ -1,5 +1,5 @@
 {
-    "name": "Rito.EditorPlugins.PivotEditor",
+    "name": "Rito.EditorUtilities.PivotEditor",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -10,7 +10,7 @@ using UnityEditor;
 // 날짜 : 2021-05-16 PM 3:34:18
 // 작성자 : Rito
 
-namespace Rito.EditorPlugins
+namespace Rito.EditorUtilities
 {
     public partial class PivotEditor : MonoBehaviour
     {
@@ -33,7 +33,7 @@ namespace Rito.EditorPlugins
             private static readonly Color BackgroundColor = new Color(0.3f, 0.1f, 0.6f, 0.3f);
 
             private static readonly Color MainBoxOutlineColor = new Color(0.05f, 0.1f, 0.2f, 1.0f);
-            private static readonly Color MainBoxContentColor = new Color(0.30f, 0.1f, 0.5f, 1.0f);
+            private static readonly Color MainBoxContentColor = new Color(0.30f, 0.2f, 0.5f, 1.0f);
 
             // Header Box Options
             private static readonly Color BoxHeaderTextColor = new Color(1.0f, 1.0f, 0.2f, 1.0f);
@@ -41,20 +41,20 @@ namespace Rito.EditorPlugins
             private static readonly Color[] BoxHeaderColors =
             {
                 new Color(0.20f, 0.1f, 0.4f, 1.0f),
-                new Color(0.25f, 0.1f, 0.4f, 1.0f),
-                new Color(0.30f, 0.1f, 0.4f, 1.0f),
+                new Color(0.21f, 0.1f, 0.4f, 1.0f),
+                new Color(0.22f, 0.1f, 0.4f, 1.0f),
             };
             private static readonly Color[] BoxContentColors =
             {
                 new Color(0.30f, 0.2f, 0.5f, 1.0f),
-                new Color(0.35f, 0.2f, 0.5f, 1.0f),
-                new Color(0.40f, 0.2f, 0.5f, 1.0f),
+                new Color(0.31f, 0.2f, 0.5f, 1.0f),
+                new Color(0.32f, 0.2f, 0.5f, 1.0f),
             };
             private static readonly Color[] BoxOutlineColors =
             {
                 new Color(0.10f, 0.1f, 0.3f, 1.0f),
-                new Color(0.15f, 0.1f, 0.3f, 1.0f),
-                new Color(0.20f, 0.1f, 0.3f, 1.0f),
+                new Color(0.11f, 0.1f, 0.3f, 1.0f),
+                new Color(0.12f, 0.1f, 0.3f, 1.0f),
             };
 
             #endregion

@@ -10,7 +10,7 @@ using UnityEditor;
 // 날짜 : 2021-05-16 PM 3:34:18
 // 작성자 : Rito
 
-namespace Rito.EditorPlugins
+namespace Rito.EditorUtilities
 {
     public partial class PivotEditor : MonoBehaviour
     {
@@ -363,7 +363,7 @@ namespace Rito.EditorPlugins
 
             private void DrawResetTransformButtons()
             {
-                GUI.backgroundColor = DarkButtonColor;
+                GUI.backgroundColor = LightButtonColor2;
                 GUI.skin.button.fontStyle = FontStyle.Bold;
 
                 if (!me.foldOutTransform) return;
@@ -606,8 +606,8 @@ namespace Rito.EditorPlugins
             private void SaveAsObjFile()
             {
                 string meshName = me.meshName;
-                string path = 
-                    EditorUtility.SaveFilePanelInProject("Save Mesh As Obj File", meshName, "obj", "");
+                string path =
+                    UnityEditor.EditorUtility.SaveFilePanelInProject("Save Mesh As Obj File", meshName, "obj", "");
 
                 if(string.IsNullOrWhiteSpace(path))
                     return;

@@ -10,7 +10,7 @@ using System.IO;
 // 날짜 : 2021-05-17 PM 5:30:17
 // 작성자 : Rito
 
-namespace Rito.EditorPlugins
+namespace Rito.EditorUtilities
 {
     // http://wiki.unity3d.com/index.php?title=ObjExporter
     public static class ObjExporter
