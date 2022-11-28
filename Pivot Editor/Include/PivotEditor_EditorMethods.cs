@@ -450,7 +450,14 @@ namespace Rito.EditorUtilities
             private void DrawPivotPointGizmo()
             {
                 Handles.color = HandleColor;
-                Handles.DrawSphere(0, me.pivotPos, Quaternion.identity, HandleUtility.GetHandleSize(me.pivotPos) * 0.12f);
+                // Handles.DrawSphere(0, me.pivotPos, Quaternion.identity, HandleUtility.GetHandleSize(me.pivotPos) * 0.12f);
+                Handles.SphereHandleCap(
+                0,
+                me.pivotPos,
+                Quaternion.identity,
+                HandleUtility.GetHandleSize(me.pivotPos) * 0.12f,
+                EventType.Repaint
+                );
             }
 
             private void DrawPivotHandle()
