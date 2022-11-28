@@ -106,3 +106,14 @@
 |`Mesh Name`|새롭게 지정할 메시 이름|
 |`Apply`|수정된 결과를 현재 메시 필터에 적용|
 |`Save As Obj File`|수정된  Obj 파일로 추출하여 저장|
+
+<br>
+
+<br>
+
+# Contributors
+
+<a href="https://github.com/Hdongyeop/">
+  <img src="https://contrib.rocks/image?repo=Hdongyeop/Hdongyeop" />
+</a>
+<!-- Made with [contrib.rocks](https://contrib.rocks). -->
